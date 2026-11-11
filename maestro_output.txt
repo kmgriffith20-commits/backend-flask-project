@@ -1,0 +1,42 @@
+from flask import Flask
+from .extensions import db, migrate
+
+def create_app(config_name="development"):
+    app = Flask(__name__)
+
+    app.config["ENV_NAME"] = config_name
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///dev.db"
+
+    db.init_app(app)
+    migrate.init_app(app, db)
+
+    from .main import main_bp
+    app.register_blueprint(main_bp)
+
+    return app
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+db = SQLAlchemy()
+migrate = Migrate()
+from flask import Blueprint
+
+main_bp = Blueprint("main", __name__)
+
+from . import routesfrom . import main_bp
+
+@main_bp.route("/")
+def index():
+    return {"message": "Task Manager API is running"}, 200
+task_manager/__init__.py
+task_manager/__pycache__/extensions.cpython-311.pyc
+task_manager/__pycache__/__init__.cpython-311.pyc
+task_manager/extensions.py
+task_manager/main/__init__.py
+task_manager/main/__pycache__/routes.cpython-311.pyc
+task_manager/main/__pycache__/__init__.cpython-311.pyc
+task_manager/main/routes.py
+Endpoint    Methods  Rule                   
+----------  -------  -----------------------
+main.index  GET      /                      
+static      GET      /static/<path:filename>
