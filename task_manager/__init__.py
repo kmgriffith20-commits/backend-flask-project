@@ -23,4 +23,9 @@ def create_app(config_name=None):
     from .main import main_bp
     app.register_blueprint(main_bp)
 
+    from . import models
+
+    from .auth.routes import auth_bp
+    app.register_blueprint(auth_bp)
+    
     return app
