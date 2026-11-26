@@ -56,3 +56,69 @@ Production uses the DATABASE_URL environment variable.
 Flask-Migrate is included in the project setup to support database migrations.
 
 Database migration commands and procedures will be documented as the project develops.
+
+## Running with Docker Compose
+
+### Prerequisites
+
+- Docker Desktop
+- Docker Compose
+
+### Environment Configuration
+
+Create a `.env` file in the project root with the following example values:
+
+```env
+POSTGRES_USER=task_user
+POSTGRES_PASSWORD=fake_password
+POSTGRES_DB=task_manager
+JWT_SECRET_KEY=fake_jwt_secret
+```
+
+Replace placeholder credentials with your own local values.
+Never commit the `.env` file to GitHub.
+
+### Build and Start the Application
+
+```bash
+docker build -t task-manager-api:latest .
+docker compose up -d
+```
+
+### Apply Database Migrations
+
+```bash
+docker compose exec web flask --app task_manager db upgrade
+```
+
+### Verify Services
+
+```bash
+docker compose ps
+curl http://localhost:5001/health
+```
+
+The API is available at http://localhost:5001.
+
+### Database Persistence
+
+PostgreSQL 16 uses a named Docker volume called `postgres_data` to preserve database records across container restarts and recreation.
+
+### Stop the Application
+
+```bash
+docker compose down
+```
+
+Do not use `docker compose down -v` unless you intentionally want to delete the stored database data.
+
+### Persistence Test Results
+
+- Created a task named Docker Persistence Test.
+- Retrieved task ID 1 successfully.
+- Removed both containers using docker compose down.
+- Recreated both containers using docker compose up -d.
+- Retrieved the same task with HTTP 200 OK.
+- Verified that the task ID, status, description, and creation timestamp remained unchanged.
+
+Result: PASS. Database persistence was successfully verified.
