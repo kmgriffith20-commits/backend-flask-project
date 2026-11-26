@@ -20,6 +20,8 @@ class User(db.Model):
         server_default=db.func.now()
     )
 
+    tasks = db.relationship("Task", back_populates="user") 
+
 class Task(db.Model):
     __tablename__ = "tasks"
 
@@ -34,6 +36,8 @@ class Task(db.Model):
         ),
     )
 
+    user = db.relationship("User", back_populates="tasks")
+    
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     user_id = db.Column(
         db.Integer,

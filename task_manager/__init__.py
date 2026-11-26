@@ -27,5 +27,11 @@ def create_app(config_name=None):
 
     from .auth.routes import auth_bp
     app.register_blueprint(auth_bp)
+
+    from .tasks.routes import tasks_bp
+    app.register_blueprint(tasks_bp)
+
+    from .errors import register_error_handlers
+    register_error_handlers(app)
     
     return app
