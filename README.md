@@ -122,3 +122,44 @@ Do not use `docker compose down -v` unless you intentionally want to delete the 
 - Verified that the task ID, status, description, and creation timestamp remained unchanged.
 
 Result: PASS. Database persistence was successfully verified.
+
+## Production Deployment
+
+The Task Manager API is successfully deployed to Render using Docker and Gunicorn, with a cloud-hosted Neon PostgreSQL database.
+
+### Deployment Details
+
+- **Hosting:** Render
+- **Database:** Neon PostgreSQL
+- **Containerization:** Docker
+- **Application Server:** Gunicorn
+- **Authentication:** JWT
+- **Database Migrations:** Alembic
+- **Release Version:** v1.0
+- **Live API:** https://task-manager-api-d2at.onrender.com
+- **Health Check:** https://task-manager-api-d2at.onrender.com/health
+
+### Production Verification
+
+| Endpoint | HTTP Status | Result |
+|---|---|---|
+| GET /health | 200 OK | PASS |
+| POST /register | 201 Created | PASS |
+| POST /login | 200 OK | PASS |
+| POST /tasks | 201 Created | PASS |
+| GET /tasks/1 | 200 OK | PASS |
+
+### Environment Variables
+
+- DATABASE_URL
+- JWT_SECRET_KEY
+- SECRET_KEY
+- FLASK_ENV
+
+Sensitive credentials are managed through environment variables and are not included in the repository.
+
+### Deployment Summary
+
+The application successfully connects to Neon PostgreSQL, applies database migrations, registers and authenticates users, and creates and retrieves tasks through authenticated API requests.
+
+All five planned production endpoint tests passed successfully.
