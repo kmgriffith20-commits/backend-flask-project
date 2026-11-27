@@ -1,116 +1,235 @@
-This project is a Flask-based Task Manager API.
+# Task Manager API
 
-## Setup
+A Flask-based REST API that allows users to register, authenticate, and manage their own tasks securely.
 
-1. Clone the repository:
-   git clone https://github.com/kmgriffith20-commits/backend-flask-project.git
+## Features
 
-2. Navigate to the project folder:
-   cd backend-flask-project
+- User registration and login
+- Secure password hashing
+- JWT authentication
+- Role-based authorization
+- Task creation and retrieval
+- Task ownership protection
+- PostgreSQL database integration
+- Database migrations
+- Docker containerization
+- Production deployment
+- Health check endpoint
 
-3. Create a virtual environment:
-   python3 -m venv .venv
+## Technology Stack
 
-4. Activate the virtual environment:
-   source .venv/bin/activate
-
-5. Install dependencies:
-   pip install -r requirements.txt
-
-6. Start the Flask application:
-
-   flask --app 'task_manager:create_app' run --debug
-
-7. Open the application in your browser:
-
-   http://127.0.0.1:5000  
-
-
- ## Environment Variables
-
-This project uses two environment variables:
-
-- SECRET_KEY: Used for Flask security.
-- DATABASE_URL: Specifies the database connection.
-
-The .env.example file contains sample configuration values.
-
-To create a local environment file, copy .env.example to .env and replace the placeholder values with your own settings.
-
-The .env file should remain private and should not be uploaded to GitHub.
-
-- FLASK_ENV: Selects the application configuration.
-  Defaults to development if not specified.
-
-
-## Database and Migrations
-
-This project uses Flask-SQLAlchemy to manage its database.
-
-Development uses a SQLite database configured as sqlite:///dev.db.
-
-Testing uses an in-memory SQLite database.
-
-Production uses the DATABASE_URL environment variable.
-
-Flask-Migrate is included in the project setup to support database migrations.
-
-Database migration commands and procedures will be documented as the project develops.
+- Python
+- Flask
+- Flask-SQLAlchemy
+- Flask-Migrate
+- Alembic
+- JWT
+- PostgreSQL
+- Docker
+- Docker Compose
+- Gunicorn
+- Render
+- Neon PostgreSQL
 
 ## Running with Docker Compose
 
 ### Prerequisites
 
+- Git
 - Docker Desktop
 - Docker Compose
 
-### Environment Configuration
+### 1. Clone the Repository
 
-Create a `.env` file in the project root with the following example values:
-
-```env
-POSTGRES_USER=task_user
-POSTGRES_PASSWORD=fake_password
-POSTGRES_DB=task_manager
-JWT_SECRET_KEY=fake_jwt_secret
+```bash
+git clone --branch unit4-docker https://github.com/kmgriffith20-commits/backend-flask-project.git
+cd backend-flask-project
 ```
 
-Replace placeholder credentials with your own local values.
-Never commit the `.env` file to GitHub.
+### 2. Configure Environment Variables
 
-### Build and Start the Application
+```bash
+cp .env.example .env
+```
+
+Open `.env` and replace the placeholder credentials with your own local development values.
+
+The environment variables include:
+
+- FLASK_ENV
+- SECRET_KEY
+- JWT_SECRET_KEY
+- DATABASE_URL
+- POSTGRES_USER
+- POSTGRES_PASSWORD
+- POSTGRES_DB
+
+Docker Compose constructs the database connection URL using the PostgreSQL environment variables.
+
+The `.env` file is excluded from Git through `.gitignore`. Never commit real credentials or production secrets.
+
+### 3. Build the Docker Image
 
 ```bash
 docker build -t task-manager-api:latest .
+```
+
+### 4. Start the Containers
+
+```bash
 docker compose up -d
 ```
 
-### Apply Database Migrations
+### 5. Apply Database Migrations
 
 ```bash
 docker compose exec web flask --app task_manager db upgrade
 ```
 
-### Verify Services
+### 6. Verify Running Services
 
 ```bash
 docker compose ps
-curl http://localhost:5001/health
 ```
 
-The API is available at http://localhost:5001.
+### 7. Test the Health Endpoint
 
-### Database Persistence
+```bash
+curl -i http://localhost:5001/health
+```
 
-PostgreSQL 16 uses a named Docker volume called `postgres_data` to preserve database records across container restarts and recreation.
+Expected HTTP status:
 
-### Stop the Application
+```text
+HTTP/1.1 200 OK
+```
+
+The local API is available at:
+
+http://localhost:5001
+
+### 8. Stop the Application
 
 ```bash
 docker compose down
 ```
 
 Do not use `docker compose down -v` unless you intentionally want to delete the stored database data.
+
+## Local Development Without Docker
+
+Create and activate a virtual environment:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Configure local environment variables, including a JWT secret and a suitable database URL.
+
+For SQLite development, use:
+
+```bash
+export FLASK_ENV=development
+export DATABASE_URL=sqlite:///dev.db
+export JWT_SECRET_KEY=local-development-only-secret
+```
+
+Apply migrations:
+
+```bash
+flask --app task_manager db upgrade
+```
+
+Start Flask:
+
+```bash
+flask --app task_manager run --debug
+```
+
+The default Flask development URL is:
+
+http://127.0.0.1:5000
+
+## Database Models
+
+### User
+
+- ID
+- Email
+- Password hash
+- Role
+- Creation timestamp
+
+### Task
+
+- ID
+- User ID
+- Title
+- Description
+- Status
+- Due date
+- Creation timestamp
+- Update timestamp
+
+The User and Task models have a one-to-many relationship. Each user can own multiple tasks.
+
+## Authentication and Authorization
+
+Users register with an email and password. Passwords are securely hashed before being stored.
+
+Successful login returns a JWT access token. Protected endpoints require a valid bearer token.
+
+Task ownership checks prevent users from accessing another user's tasks. Administrative endpoints require the appropriate user role.
+
+## Main API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /health | Application health check |
+| POST | /register | Register a user |
+| POST | /login | Authenticate a user |
+| GET | /me | Retrieve authenticated user |
+| GET | /api/profile | Retrieve user profile |
+| PATCH | /api/profile | Update user profile |
+| GET | /api/admin/ping | Admin-only endpoint |
+| POST | /tasks | Create a task |
+| GET | /tasks | List owned tasks |
+| GET | /tasks/{id} | Retrieve an owned task |
+
+## Project Organization
+
+- task_manager/__init__.py: Flask application factory
+- task_manager/models.py: Database models
+- task_manager/auth/routes.py: Authentication routes
+- task_manager/tasks/routes.py: Task routes
+- task_manager/auth/decorators.py: Authentication and authorization
+- config.py: Application configuration
+- migrations/: Database migrations
+- Dockerfile: Application container configuration
+- docker-compose.yml: Web and database services
+- .env.example: Example environment configuration
+- .gitignore: Excluded private and generated files
+
+## Database and Migrations
+
+The application uses Flask-SQLAlchemy and Alembic migrations.
+
+Development supports SQLite or PostgreSQL.
+
+Testing uses an in-memory SQLite database.
+
+Production uses Neon PostgreSQL through the DATABASE_URL environment variable.
+
+## Database Persistence
+
+PostgreSQL 16 uses a named Docker volume called `postgres_data` to preserve records across container restarts and recreation.
 
 ### Persistence Test Results
 
@@ -121,23 +240,59 @@ Do not use `docker compose down -v` unless you intentionally want to delete the 
 - Retrieved the same task with HTTP 200 OK.
 - Verified that the task ID, status, description, and creation timestamp remained unchanged.
 
-Result: PASS. Database persistence was successfully verified.
+Result: PASS.
+
+## Fresh Clone Verification
+
+The project was tested from a fresh Git clone using Docker Compose.
+
+Verification included:
+
+- Docker image build
+- Container startup
+- Database migrations
+- Health endpoint
+- User registration
+- User authentication
+- Task creation and retrieval
+- Task ownership isolation between two users
+
+Result: PASS.
+
+## Security Verification
+
+The following security behaviors were tested:
+
+- Incorrect password rejection
+- Duplicate email rejection
+- Expired JWT rejection
+- Unauthorized administrative access rejection
+- Task ownership isolation
+- Unauthorized task retrieval returning HTTP 404
+
+Additional authentication test evidence is documented in AUTH_TESTS.md.
 
 ## Production Deployment
 
-The Task Manager API is successfully deployed to Render using Docker and Gunicorn, with a cloud-hosted Neon PostgreSQL database.
+The Task Manager API is deployed to Render using Docker and Gunicorn, with a cloud-hosted Neon PostgreSQL database.
 
 ### Deployment Details
 
-- **Hosting:** Render
-- **Database:** Neon PostgreSQL
-- **Containerization:** Docker
-- **Application Server:** Gunicorn
-- **Authentication:** JWT
-- **Database Migrations:** Alembic
-- **Release Version:** v1.0
-- **Live API:** https://task-manager-api-d2at.onrender.com
-- **Health Check:** https://task-manager-api-d2at.onrender.com/health
+- Hosting: Render
+- Database: Neon PostgreSQL
+- Containerization: Docker
+- Application Server: Gunicorn
+- Authentication: JWT
+- Database Migrations: Alembic
+- Release Version: v1.0
+
+### Live API
+
+https://task-manager-api-d2at.onrender.com
+
+### Health Check
+
+https://task-manager-api-d2at.onrender.com/health
 
 ### Production Verification
 
@@ -149,17 +304,29 @@ The Task Manager API is successfully deployed to Render using Docker and Gunicor
 | POST /tasks | 201 Created | PASS |
 | GET /tasks/1 | 200 OK | PASS |
 
-### Environment Variables
+### Production Environment Variables
 
 - DATABASE_URL
 - JWT_SECRET_KEY
 - SECRET_KEY
 - FLASK_ENV
 
-Sensitive credentials are managed through environment variables and are not included in the repository.
+Sensitive production credentials are managed through environment variables and are not included in the repository.
 
-### Deployment Summary
+## Deployment Summary
 
 The application successfully connects to Neon PostgreSQL, applies database migrations, registers and authenticates users, and creates and retrieves tasks through authenticated API requests.
 
 All five planned production endpoint tests passed successfully.
+
+## Future Improvements
+
+- Expand automated test coverage.
+- Improve API documentation.
+- Add continuous integration testing.
+
+## Author
+
+Katie Griffith
+
+AI Software Engineering Student — Maestro College
